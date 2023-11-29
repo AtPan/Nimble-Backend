@@ -10,7 +10,7 @@ SQL_DB_PASS = "Daliilad3"
 SQL_DB_PASS_NOAT = "1qaz2wsx!QAZ%40WSX"
 
 SQL_DB = sqlalchemy.engine.URL.create(
-        drivername="mysql",
+        drivername="mysql+pymysql",
         username="root",
         password=SQL_DB_PASS,
         host=SQL_DB_URL,
