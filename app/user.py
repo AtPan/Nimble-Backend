@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, Session
+from hashing import Hash
 
 from db import Base, get_db
 
@@ -23,23 +24,30 @@ class User(BaseModel):
     class Config:
         orm_mode = True
 
+class ShowUser(BaseModel):
+    name: str
+    email: str
+    class Config:
+        orm_mode = True
+
 @router.post("/api/users", tags=["users"])
 def create_user(user: User, db: Session = Depends(get_db)):
     udata = fetch_user_by_email(db, user.email)
     if udata is not None:
         raise HTTPException(status_code=403, detail="Email in use")
-    udata = UserData(name=user.name, password=user.password, email=user.email)
+    udata = UserData(name=user.name, password=Hash.bcrypt(user.password), email=user.email)
     db.add(udata)
     db.commit()
     db.refresh(udata)
     return {"message": "User created successfully"}
 
-@router.get("/api/users/{user_id}", tags=["users"], response_model=User)
+@router.get("/api/users/{user_id}", tags=["users"], response_model=ShowUser)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     udata = fetch_user_by_id(db, user_id)
     if udata is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return User(name=udata.name, password=udata.password, email=udata.email).dict()
+    return udata
+    #return User(name=udata.name, password=udata.password, email=udata.email).dict()
 
 @router.put("/api/users/{user_id}", tags=["users"])
 def update_user(user_id: int, user: User, db: Session = Depends(get_db)):

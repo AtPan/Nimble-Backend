@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, Session
+from oauth2 import get_current_user
+from user import User
 
 from db import Base, get_db
 
@@ -48,7 +50,7 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
     return Task(name=tdata.name, description=tdata.description, due_date=tdata.due_date, user_id=tdata.user_id, project_id=tdata.project_id).dict()
 
 @router.get("/api/alltasks", tags=["tasks"])
-def get_all_tasks(db: Session = Depends(get_db)):
+def get_all_tasks(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return db.query(TaskData).all()
 
 @router.put("/api/tasks/{task_id}", tags=["tasks"])
