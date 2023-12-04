@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-import project, task, user
+import project, task, user, auth3
 
 app = FastAPI()
 
@@ -18,9 +18,11 @@ app.add_middleware(
         allow_methods=["*"],
 )
 
+app.include_router(auth3.router)
 app.include_router(project.router)
 app.include_router(task.router)
 app.include_router(user.router)
+
 
 #engine=create_engine(SQL_DB)
 #SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
