@@ -16,7 +16,7 @@ SQL_DB = sqlalchemy.engine.URL.create(
         username="root",
         password=SQL_DB_PASS,
         host=SQL_DB_URL,
-        port = 3306,
+        port = 3307,
         database="academicAlly",
 )
 #SQL_DB = "mysql+pymysql://test1234:academicA!!y24@mysql-db:3306/academicAlly"
