@@ -10,11 +10,6 @@ services:
 
   fastapi-app:
     image: proven24/nimblebackendtest:v1.1
-    environment:
-      MYSQL_ROOT_PASSWORD: 1qaz2wsx!QAZ@WSX
-      MYSQL_DATABASE: academicAlly
-      MYSQL_USER: test1234
-      MYSQL_PASSWORD: academicA!!y24
     ports:
       - "8000:8000"
     depends_on:
@@ -22,5 +17,10 @@ services:
 
   mysql-db:
     image: proven24/databasetest:v1.0
+    environment:
+      MYSQL_ROOT_PASSWORD: 1qaz2wsx!QAZ@WSX
+      MYSQL_DATABASE: academicAlly
+      MYSQL_USER: test1234
+      MYSQL_PASSWORD: academicA!!y24
     ports:
       - "3307:3306"
