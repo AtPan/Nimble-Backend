@@ -9,6 +9,7 @@ SQL_DB_URL = "mysql-db"
 SQL_DB_PASS = "1qaz2wsx!QAZ@WSX"  #Has Original Password
 #SQL_DB_PASS = "Daliilad3"
 #SQL_DB_PASS_NOAT = "1qaz2wsx!QAZ%40WSX"
+#
 
 
 SQL_DB = sqlalchemy.engine.URL.create(
@@ -16,7 +17,7 @@ SQL_DB = sqlalchemy.engine.URL.create(
         username="root",
         password=SQL_DB_PASS,
         host=SQL_DB_URL,
-        port = 3307,
+        port = 3306,
         database="academicAlly",
 )
 #SQL_DB = "mysql+pymysql://test1234:academicA!!y24@mysql-db:3306/academicAlly"
