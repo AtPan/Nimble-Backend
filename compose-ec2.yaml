@@ -23,4 +23,4 @@ services:
   mysql-db:
     image: proven24/databasetest:v1.0
     ports:
-      - "3306:3306"
+      - "3307:3306"
