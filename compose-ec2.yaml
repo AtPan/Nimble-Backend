@@ -4,7 +4,7 @@ services:
   react-app:
     image: proven24/nimblefrontendtest:v1.0
     ports:
-      - "3000:3000"
+      - "3000:5173"
     depends_on:
       - fastapi-app
 
