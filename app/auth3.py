@@ -1,12 +1,11 @@
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from db import Base, get_db
+from db import get_db
 from sqlalchemy.orm import Session
-from user import UserData, fetch_user_by_email
+from user import fetch_user_by_email
 from hashing import Hash
-import token
+import JWTtoken as token
 
 router = APIRouter(
     tags=['Authentication']

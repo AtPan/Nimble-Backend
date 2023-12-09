@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo docker build -t proven24/nimblebackendtest:v1.5 . && sudo docker push proven24/nimblebackendtest:v1.5 && sudo docker compose -f compose-ec2.yaml up -d

@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy import Column, ForeignKey, Integer, String, select, update, delete
+from sqlalchemy.orm import Session
+from oauth2 import get_current_user
+from user import User
 
 from db import Base, get_db
 
-from user import UserData
+from user import fetch_user_by_email
 
 router = APIRouter()
 
@@ -24,6 +26,10 @@ class Project(BaseModel):
     class Config:
         orm_mode = True
 
+@router.get("/api/allprojects", tags=["projects"])
+def get_all_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return db.execute(select(ProjectData).filter_by(ProjectData.user_id==fetch_user_by_email(db, current_user.email).id)).all()
+
 @router.post("/api/projects", tags=["projects"])
 def create_project(project: Project, db: Session = Depends(get_db)):
     pdata = ProjectData(name=project.name, color=project.color, user_id=project.user_id)
@@ -41,15 +47,18 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 
 @router.put("/api/projects/{project_id}", tags=["projects"])
 def update_project(project_id: int, project: Project, db: Session = Depends(get_db)):
-    db.query(ProjectData).filter(project_id==ProjectData.id).update(project.dict())
+    db.execute(update(ProjectData).where(ProjectData.id==project_id).values({
+        ProjectData.name: project.name,
+        ProjectData.color: project.color
+    }))
     db.commit()
     return {"message": "Project updated successfully"}
 
 @router.delete("/api/projects/{project_id}", tags=["projects"])
 def delete_project(project_id: int, db: Session = Depends(get_db)):
-    db.query(ProjectData).filter(project_id==ProjectData.id).delete()
+    db.execute(delete(ProjectData).where(ProjectData.id==project_id))
     db.commit()
     return {"message": "Project deleted successfully"}
 
 def fetch_project_by_id(db: Session, project_id: int):
-    return db.query(ProjectData).filter(ProjectData.id == project_id).first()
+    return db.execute(select(ProjectData).filter_by(ProjectData.id==project_id)).first()

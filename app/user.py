@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy import Column, Integer, String, select, delete, update
+from sqlalchemy.orm import Session
 from hashing import Hash
 
 from db import Base, get_db
@@ -51,18 +51,29 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 @router.put("/api/users/{user_id}", tags=["users"])
 def update_user(user_id: int, user: User, db: Session = Depends(get_db)):
-    db.query(UserData).filter(user_id == UserData.id).update(user.dict())
+    db.execute(update(UserData).where(UserData.id==user_id).values({
+        UserData.id: user.name,
+        UserData.email: user.email,
+        UserData.password: user.password
+        }))
     db.commit()
     return {"message": "Updated user successfully"}
 
 @router.delete("/api/users/{user_id}", tags=["users"])
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db.query(UserData).filter(user_id == UserData.id).delete()
+    db.execute(delete(UserData).where(UserData.id==user_id))
     db.commit()
     return {"message": "Deleted user successfully"}
 
 def fetch_user_by_id(db: Session, user_id: int):
-    return db.query(UserData).filter(UserData.id == user_id).first()
+    row = db.execute(select(UserData).filter_by(id=user_id)).first()
+    if row != None:
+        row = row[0]
+    return row
 
 def fetch_user_by_email(db: Session, email: str):
-    return db.query(UserData).filter(UserData.email == email).first()
+    row = db.execute(select(UserData).filter_by(email=email)).first()
+    if row != None:
+        row = row[0]
+    return row
+    #return db.query(UserData).filter(UserData.email == email).first()
