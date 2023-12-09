@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy import ForeignKey, Column, Integer, String, select, delete, update
+from sqlalchemy.orm import Session
 from oauth2 import get_current_user
-from user import User
+from user import User, fetch_user_by_email
 
 from db import Base, get_db
 
@@ -51,20 +51,29 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.get("/api/alltasks", tags=["tasks"])
 def get_all_tasks(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(TaskData).all()
+    return db.execute(select(TaskData).where(TaskData.user_id==fetch_user_by_email(db, current_user.email).id)).all()
 
 @router.put("/api/tasks/{task_id}", tags=["tasks"])
 def update_task(task_id: int, task: Task, db: Session = Depends(get_db)):
     tdata = fetch_task_by_id(db, task_id)
-    db.query(TaskData).filter(task_id==TaskData.id).update(task.dict())
-    db.commit()
-    return {"message": "Task updated successfully"}
+    if tdata != None:
+        db.execute(update(TaskData).where(id==task_id).values({
+            TaskData.name: task.name,
+            TaskData.description: task.description,
+            TaskData.due_date: task.due_date
+        }))
+        db.commit()
+        return {"message": "Task updated successfully"}
+    return {"message": "No task exists"}
 
 @router.delete("/api/tasks/{task_id}", tags=["tasks"])
 def delete_task(task_id: int, db: Session = Depends(get_db)):
-    db.query(TaskData).filter(task_id==TaskData.id).delete()
+    db.execute(delete(TaskData).where(TaskData.id==task_id))
     db.commit()
     return {"message": "Task deleted successfully"}
 
 def fetch_task_by_id(db: Session, task_id: int):
-    return db.query(TaskData).filter(TaskData.id == task_id).first()
+    row = db.execute(select(TaskData).filter_by(id=task_id)).first()
+    if row != None:
+        row = row[0]
+    return row
