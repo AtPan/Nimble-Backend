@@ -9,7 +9,7 @@ services:
       - fastapi-app
 
   fastapi-app:
-    image: proven24/nimblebackendtest:v1.5
+    image: proven24/nimblebackendtest:v1.6
     ports:
       - "8000:7000"
     depends_on:
