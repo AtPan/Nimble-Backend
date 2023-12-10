@@ -22,5 +22,11 @@ services:
       MYSQL_DATABASE: academicAlly
       MYSQL_USER: test1234
       MYSQL_PASSWORD: academicA!!y24
+    volumes:
+      - ./SQL:/docker-entrypoint-initdb.d
+      - database-data:/var/lib/mysql
     ports:
       - "3307:3306"
+
+volumes:
+  database-data:
