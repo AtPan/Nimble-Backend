@@ -14,8 +14,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    username = verify_token(token, credentials_exception)
-    user = fetch_user_by_email(db, username)
+    tokenData = verify_token(token, credentials_exception)
+    user = fetch_user_by_email(db, tokenData.email)
     if user is None:
-        raise credentials_exception
+        print('could not find user')
     return user
