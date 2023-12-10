@@ -35,10 +35,13 @@ services:
       MYSQL_USER: test1234
       MYSQL_PASSWORD: academicA!!y24
     volumes:
-      - ./mysql-data:/var/lib/mysql
+      - volume1:/var/lib/mysql
       - ./SQL:/docker-entrypoint-initdb.d  # Mount the init-scripts directory
     networks:
       - app-network
+
+volumes:
+  volume1:
 
 networks:
   app-network:
