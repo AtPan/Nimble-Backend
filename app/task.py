@@ -28,8 +28,9 @@ class Task(BaseModel):
         orm_mode = True
 
 @router.post("/api/tasks", tags=["tasks"])
-def create_task(task: Task, db: Session = Depends(get_db)):
-    tdata = TaskData(name=task.name, description=task.description, due_date=task.due_date, user_id=task.user_id, project_id=task.project_id)
+def create_task(task: Task, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user_id = fetch_user_by_email(db, current_user.email).id
+    tdata = TaskData(name=task.name, description=task.description, due_date=task.due_date, user_id=user_id, project_id=task.project_id)
 #    tdata = TaskData()
 #    tdata.name = Column(task.name)
 #    tdata.description = Column(task.description)
@@ -43,7 +44,7 @@ def create_task(task: Task, db: Session = Depends(get_db)):
     return {"message": "Task created successfully"}
 
 @router.get("/api/tasks/{task_id}", tags=["tasks"])
-def get_task(task_id: int, db: Session = Depends(get_db)):
+def get_task(task_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     tdata = fetch_task_by_id(db, task_id)
     if tdata is None:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -51,7 +52,10 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.get("/api/alltasks", tags=["tasks"])
 def get_all_tasks(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.execute(select(TaskData).where(TaskData.user_id==fetch_user_by_email(db, current_user.email).id)).all()
+    user_id = fetch_user_by_email(db, current_user.email).id
+    all_tasks = db.query(TaskData).filter_by(user_id=user_id).all()
+    #db.execute(select(TaskData).where(TaskData.user_id==fetch_user_by_email(db, current_user.email).id)).all()
+    return all_tasks
 
 @router.put("/api/tasks/{task_id}", tags=["tasks"])
 def update_task(task_id: int, task: Task, db: Session = Depends(get_db)):
