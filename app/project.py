@@ -28,11 +28,15 @@ class Project(BaseModel):
 
 @router.get("/api/allprojects", tags=["projects"])
 def get_all_projects(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.execute(select(ProjectData).filter_by(ProjectData.user_id==fetch_user_by_email(db, current_user.email).id)).all()
+    user_id = fetch_user_by_email(db, current_user.email).id
+    projects = db.query(ProjectData).filter_by(user_id=user_id).all()
+    print(f"Projects: {projects}")
+    return projects
 
 @router.post("/api/projects", tags=["projects"])
-def create_project(project: Project, db: Session = Depends(get_db)):
-    pdata = ProjectData(name=project.name, color=project.color, user_id=project.user_id)
+def create_project(project: Project, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    userData = fetch_user_by_email(db, current_user.email)
+    pdata = ProjectData(name=project.name, color=project.color, user_id=userData.id)
     db.add(pdata)
     db.commit()
     db.refresh(pdata)
