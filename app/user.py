@@ -3,8 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, select, delete, update
 from sqlalchemy.orm import Session
 from hashing import Hash
-
 from db import Base, get_db
+
+import JWTtoken as token
 
 router = APIRouter()
 
@@ -39,7 +40,7 @@ def create_user(user: User, db: Session = Depends(get_db)):
     db.add(udata)
     db.commit()
     db.refresh(udata)
-    return {"message": "User created successfully"}
+    return {"message": "User created successfully", "access_token": token.create_access_token(data={"sub": user.email}), "token_type": "bearer"}
 
 @router.get("/api/users/{user_id}", tags=["users"], response_model=ShowUser)
 def get_user(user_id: int, db: Session = Depends(get_db)):
