@@ -2,14 +2,14 @@ version: '1'
 
 services:
   react-app:
-    image: proven24/nimblefrontendtest:v1.9
+    image: proven24/nimblefrontendtest:v1.11
     ports:
       - "3000:5173"
     depends_on:
       - fastapi-app
 
   fastapi-app:
-    image: proven24/nimblebackendtest:v1.7
+    image: proven24/nimblebackendtest:v1.9
     ports:
       - "8000:7000"
     depends_on:
