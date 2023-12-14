@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import ForeignKey, Column, Integer, String, select, delete, update
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, column_property
 from oauth2 import get_current_user
 from user import User, fetch_user_by_email
 
@@ -17,6 +17,7 @@ class TaskData(Base):
     due_date = Column(String)
     user_id = Column(ForeignKey("users.id"))
     project_id = Column(ForeignKey("projects.id"))
+    is_checked = column_property(Column(Integer, default=False, name="completed"))
 
 class Task(BaseModel):
     name: str
@@ -24,6 +25,7 @@ class Task(BaseModel):
     due_date: str
     user_id: int
     project_id: int
+    completed: int = Field(alias="is_checked")
     class Config:
         orm_mode = True
 
@@ -48,7 +50,7 @@ def get_task(task_id: int, db: Session = Depends(get_db), current_user: User = D
     tdata = fetch_task_by_id(db, task_id)
     if tdata is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return Task(name=tdata.name, description=tdata.description, due_date=tdata.due_date, user_id=tdata.user_id, project_id=tdata.project_id).dict()
+    return Task(name=tdata.name, description=tdata.description, due_date=tdata.due_date, user_id=tdata.user_id, project_id=tdata.project_id, completed=tdata.is_checked).dict()
 
 @router.get("/api/alltasks", tags=["tasks"])
 def get_all_tasks(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -58,20 +60,21 @@ def get_all_tasks(db: Session = Depends(get_db), current_user: User = Depends(ge
     return all_tasks
 
 @router.put("/api/tasks/{task_id}", tags=["tasks"])
-def update_task(task_id: int, task: Task, db: Session = Depends(get_db)):
+def update_task(task_id: int, task: Task, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     tdata = fetch_task_by_id(db, task_id)
     if tdata != None:
-        db.execute(update(TaskData).where(id==task_id).values({
+        db.query(TaskData).filter(TaskData.id==task_id).update({
             TaskData.name: task.name,
             TaskData.description: task.description,
-            TaskData.due_date: task.due_date
-        }))
+            TaskData.due_date: task.due_date,
+            TaskData.is_checked: task.completed,
+        })
         db.commit()
         return {"message": "Task updated successfully"}
     return {"message": "No task exists"}
 
 @router.delete("/api/tasks/{task_id}", tags=["tasks"])
-def delete_task(task_id: int, db: Session = Depends(get_db)):
+def delete_task(task_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db.execute(delete(TaskData).where(TaskData.id==task_id))
     db.commit()
     return {"message": "Task deleted successfully"}

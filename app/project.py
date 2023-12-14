@@ -43,14 +43,14 @@ def create_project(project: Project, db: Session = Depends(get_db), current_user
     return {"message": "Project created successfully"}
 
 @router.get("/api/projects/{project_id}", tags=["projects"])
-def get_project(project_id: int, db: Session = Depends(get_db)):
+def get_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     pdata = fetch_project_by_id(db, project_id)
     if pdata is None:
         raise HTTPException(status_code=404, detail="Project not found")
     return Project(name=pdata.name, color=pdata.color, user_id=pdata.user_id).dict()
 
 @router.put("/api/projects/{project_id}", tags=["projects"])
-def update_project(project_id: int, project: Project, db: Session = Depends(get_db)):
+def update_project(project_id: int, project: Project, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db.execute(update(ProjectData).where(ProjectData.id==project_id).values({
         ProjectData.name: project.name,
         ProjectData.color: project.color
@@ -59,7 +59,7 @@ def update_project(project_id: int, project: Project, db: Session = Depends(get_
     return {"message": "Project updated successfully"}
 
 @router.delete("/api/projects/{project_id}", tags=["projects"])
-def delete_project(project_id: int, db: Session = Depends(get_db)):
+def delete_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db.execute(delete(ProjectData).where(ProjectData.id==project_id))
     db.commit()
     return {"message": "Project deleted successfully"}
